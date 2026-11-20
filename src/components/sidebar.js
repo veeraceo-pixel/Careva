@@ -1,0 +1,2 @@
+export const NAV = [['dashboard', 'Dashboard'], ['medicines', 'Medicines'], ['prescriptions', 'Prescriptions'], ['reports', 'Reports'], ['doctor-visits', 'Doctor visits'], ['family', 'Family'], ['contact', 'Contact']];
+export const sidebar = route => `<nav aria-label="Main"><div class="logo"><b>+</b>Careva</div>${NAV.map(([k, l]) => `<a href="#/${k}" class="${k === route ? 'on' : ''}">${l}</a>`).join('')}</nav>`;

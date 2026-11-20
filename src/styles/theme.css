@@ -1,0 +1,21 @@
+/* Careva colour system, matched to the sign-in screen */
+:root{
+  --bg:#eef4ff;--bg2:#f8faff;--card:#ffffff;
+  --ink:#12306b;        /* headings, logo text */
+  --body:#3d4d6e;       /* labels and body text */
+  --mut:#5b6b8c;        /* secondary text */
+  --faint:#9aa7c4;      /* subtitles, notices */
+  --line:#e3eaf7;       /* borders */
+  --pri:#2557c9;        /* logo tile, active tab text */
+  --btn:#6ba3ff;        /* primary button */
+  --btnInk:#0b1a3a;     /* text on primary button */
+  --ghost:#86aaf0;      /* outline button text */
+  --priS:#eef3fb;       /* tab track, soft fills */
+  --ok:#12805c;--warn:#b4570a;--bad:#c0392b;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--body);background:linear-gradient(135deg,#e6efff 0%,var(--bg2) 55%,#fff 100%) fixed;font:500 16px/1.5 'Plus Jakarta Sans',system-ui,sans-serif}
+h1,h2,h3{margin:0;color:var(--ink);letter-spacing:-.025em}
+h1{font-size:clamp(2.2rem,5.2vw,3.8rem);font-weight:800;line-height:1.04;margin-top:2.6rem}
+h2{font-size:1.7rem;font-weight:800}h3{font-size:1.05rem;font-weight:700}
+p{margin:0}.mut{color:var(--mut)}.faint{color:var(--faint)}.sm{font-size:.88rem}.lead{margin-top:1rem;max-width:34rem;font-size:1.15rem;color:var(--mut)}
+.err{color:var(--bad);font-size:.9rem;min-height:1.2em}
