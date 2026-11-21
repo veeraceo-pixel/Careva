@@ -1,0 +1,3 @@
+import { esc } from '../utils/format.js';
+import { alertsOn } from '../services/reminders.js';
+export const header = (user, members, cur) => `<header class="top"><div class="row"><label class="sm" for="who" style="margin:0">Viewing</label><select id="who" style="width:auto">${members.map(m => `<option value="${m.id}" ${m.id === cur ? 'selected' : ''}>${esc(m.name)}</option>`).join('')}</select></div><div class="row"><button class="btn ghost sm" data-alerts>${alertsOn() ? '🔔 Alerts on' : '🔕 Alerts off'}</button><span class="mut sm">${esc(user.name)}</span><button class="btn ghost sm" data-out>Sign out</button></div></header>`;
