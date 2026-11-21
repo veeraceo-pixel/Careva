@@ -12,7 +12,7 @@ export async function signIn(email, password) {
 }
 export async function signUp(email, password, name) {
   if (!configured) return demo(email, name);
-  const { error, data } = await supabase.auth.signUp({ email, password, options: { data: { name } } }); if (error) throw error;
+  const { error, data } = await supabase.auth.signUp({ email, password, options: { data: { name }, emailRedirectTo: window.location.origin + window.location.pathname } }); if (error) throw error;
   if (!data.session) throw new Error('Check your email to confirm your account, then sign in.');
 }
 export async function signOut() { if (configured) await supabase.auth.signOut(); localStorage.removeItem(L); }
