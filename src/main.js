@@ -2,6 +2,7 @@ import './styles/theme.css'; import './styles/layout.css'; import './styles/comp
 import { getUser, signIn, signUp, signOut, demo } from './services/auth.js';
 import { configured } from './services/supabase.js';
 import { list, add, member, fileUrl } from './services/storage.js';
+import { startReminders, enableAlerts, disableAlerts, alertsOn } from './services/reminders.js';
 import { sidebar } from './components/sidebar.js'; import { header } from './components/header.js';
 import dashboard from './pages/dashboard.js'; import medicines from './pages/medicines.js'; import prescriptions from './pages/prescriptions.js';
 import reports from './pages/reports.js'; import visits from './pages/doctor-visits.js'; import family from './pages/family.js'; import contact from './pages/contact.js';
@@ -32,14 +33,17 @@ async function ensureMember() {
 }
 async function render() {
   const user = await getUser(); if (!user) return authView();
+  startReminders();
   const ms = await ensureMember(), route = location.hash.slice(2) || 'dashboard';
   app.innerHTML = `<div class="shell">${sidebar(route)}<div class="content">${header(user, ms, member.get())}<main id="view"></main></div></div>`;
   const view = document.getElementById('view');
   try { await (routes[route] || dashboard)(view, { user, members: ms, render }); } catch (e) { view.innerHTML = `<p class="err">${e.message}</p>`; }
 }
 document.addEventListener('click', async e => {
+  if (e.target.closest('[data-alerts]')) { if (alertsOn()) disableAlerts(); else { const p = await enableAlerts(); if (p === 'denied') alert('Pop-up notifications are blocked in this browser, but sound and spoken alerts will still play.'); } render(); return; }
   if (e.target.closest('[data-out]')) { await signOut(); render(); }
   const f = e.target.closest('[data-file]'); if (f) { const u = await fileUrl(f.dataset.file); if (u) window.open(u, '_blank'); }
 });
 document.addEventListener('change', e => { if (e.target.id === 'who') { member.set(e.target.value); render(); } });
+window.addEventListener('careva:taken', () => { if (!location.hash || location.hash === '#/dashboard') render(); });
 window.addEventListener('hashchange', render); render();

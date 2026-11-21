@@ -29,11 +29,12 @@ const FOOD = /\b(after|before|with)\s+(?:food|meals?|breakfast|lunch|dinner)\b/g
 const DUR = /(?:for|x)?\s*(\d+)\s*(day|week|month)s?\b/i;
 const IGNORE = /\b(patient|age|sex|gender|phone|reg\.?\s*no|address|date|bp|weight|wt|temp|pulse|diagnosis|follow|review|signature|mbbs)\b/i;
 const clean = s => s.replace(/[^\p{L}\p{N}&.,'()\- ]/gu, ' ').replace(/\s+/g, ' ').trim();
+const cleanName = s => clean(s).replace(/^[A-Za-z]{1,3}[)\].:]\s+/, '').replace(/^[^A-Za-z0-9]+/, '');
 
 export function parsePrescription(text) {
   const lines = (text || '').split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 1);
   const out = { hospital: '', doctor: '', date: '', follow_up: '', medicines: [] };
-  out.hospital = clean(lines.slice(0, 10).find(l => HOSP.test(l) && !/\bdr\b/i.test(l) && /[A-Za-z]{4}/.test(l)) || '');
+  out.hospital = cleanName(lines.slice(0, 10).find(l => HOSP.test(l) && !/\bdr\b/i.test(l) && /[A-Za-z]{4}/.test(l)) || '');
   for (const l of lines) {
     if (/patient|pt\.?\s*name/i.test(l)) continue;
     const m = l.match(/\b(?:dr|doctor)\b[.:]?\s*([A-Za-z][A-Za-z.'-]*(?:\s+[A-Za-z][A-Za-z.'-]*){0,3})/i);
@@ -41,6 +42,7 @@ export function parsePrescription(text) {
     const words = []; for (const w of m[1].split(/\s+/)) { if (STOP.test(w.replace(/\./g, ''))) break; words.push(w); }
     if (words.length) { out.doctor = 'Dr. ' + words.join(' ').replace(/\.$/, ''); break; }
   }
+  if (!out.doctor) for (const l of lines) { const m = l.match(/(?:doctor|consultant|physician)(?:'s)?\s*(?:name)?\s*[:\-]\s*([A-Za-z][A-Za-z.' ]{2,40})/i); if (m) { out.doctor = 'Dr. ' + clean(m[1]).replace(/^dr\.?\s*/i, ''); break; } }
   const fuIdx = new Set(); lines.forEach((l, i) => { if (FU.test(l)) fuIdx.add(i); });
   const dl = lines.findIndex((l, i) => !fuIdx.has(i) && /\bdate\b|dated/i.test(l) && datesIn(l).length);
   out.date = dl >= 0 ? datesIn(lines[dl])[0] : (lines.map((l, i) => fuIdx.has(i) ? [] : datesIn(l)).flat()[0] || '');
@@ -52,10 +54,11 @@ export function parsePrescription(text) {
   const seen = new Set();
   for (const raw of lines) {
     const fm = raw.match(FORM), hasForm = !!fm[1], numbered = /^\d+\s*[.)]/.test(raw), dose0 = raw.match(DOSE);
-    if (!(hasForm || (numbered && dose0))) continue;
+    const formAnywhere = /\b(tab|tablet|cap|capsule|syp|syrup|inj|drops|susp)\b/i.test(raw);
+    if (!(hasForm || (numbered && (dose0 || formAnywhere)))) continue;
     if (IGNORE.test(raw) && !hasForm) continue;
     const rest = raw.slice(fm[0].length), dose = rest.match(DOSE);
-    const cuts = [dose?.index, rest.search(PATTERN), rest.search(/\b(od|bd|bid|tds|tid|qds|qid|hs|sos|prn|once|twice|thrice|daily)\b/i), rest.search(/\bfor\b|\bx\s*\d/i), rest.search(/\b(at\s+night|bedtime|morning|evening|after|before|with)\b/i), rest.indexOf('(')].filter(n => n >= 0);
+    const cuts = [dose?.index, rest.search(PATTERN), rest.search(/\b(od|bd|bid|tds|tid|qds|qid|hs|sos|prn|once|twice|thrice|daily)\b/i), rest.search(/\bfor\b|\bx\s*\d/i), rest.search(/\b(at\s+night|bedtime|morning|evening|after|before|with)\b/i), rest.search(/\b(tab|tablet|cap|capsule|syp|syrup|inj|drops)\b/i), rest.indexOf('(')].filter(n => n >= 0);
     const cut = cuts.length ? Math.min(...cuts) : rest.length;
     const name = clean(rest.slice(0, cut)).replace(/^[.\- ]+/, '');
     if (name.length < 3 || seen.has(name.toLowerCase())) continue; seen.add(name.toLowerCase());
